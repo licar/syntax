@@ -16,18 +16,19 @@ namespace SyntaxAnalyser
         public void process(VaribleDeclaration varibleDeclaration)
         {
             Token identifier = (Token)varibleDeclaration.getTokensList()[0];
+            Type type = (Type)varibleDeclaration.getTokensList()[1];
             try //для массива
             {
-                ArrayType arrayType = (ArrayType)varibleDeclaration.getTokensList()[1];
+                ArrayType arrayType = (ArrayType)type.getTokensList()[0];
                 _isArray = true;
                 _type = (Token)arrayType.getTokensList()[0];
                 _length = (Token)arrayType.getTokensList()[1];
             }
             catch  // для инта
             {
-                IntegerType arrayType = (IntegerType)varibleDeclaration.getTokensList()[1];
+                IntegerType integerType = (IntegerType)type.getTokensList()[0];
                 _isArray = false;
-                _type = (Token)arrayType.getTokensList()[0];
+                _type = (Token)integerType.getTokensList()[0];
             }
             generate();
         }
@@ -107,19 +108,28 @@ namespace SyntaxAnalyser
             try
             {
                 Factor factor = (Factor)item;
-                tokens.AddRange(addFactor(factor));
+                try
+                {
+                    tokens.Add((Token)factor.getTokensList()[0]);
+                }
+                catch
+                {
+                    VaribleStatment varibleStatment = (VaribleStatment)factor.getTokensList()[0];
+                    tokens.AddRange(addFactor(varibleStatment));
+                }
             }
             catch
             {
-                tokens.Add((Token)item);
+                RelationalOperator relationalOperator = (RelationalOperator)item;
+                tokens.Add((Token)relationalOperator.getTokensList()[0]);
             }
             return tokens;
         }
 
-        public static List<Token> addFactor(Factor factor)
+        public static List<Token> addFactor(VaribleStatment varibleStatment)
         {
             List<Token> tokens = new List<Token>();
-            foreach (object element in factor.getTokensList())
+            foreach (object element in varibleStatment.getTokensList())
             {
                 tokens.Add((Token)element);
             }
@@ -141,7 +151,7 @@ namespace SyntaxAnalyser
         public void process(ReadStatment readStatment)
         {
             VaribleStatment varibleStatment = (VaribleStatment)readStatment.getTokensList()[0];
-            if (varibleStatment.getTokensList().Count == 0) //для переменной
+            if (varibleStatment.getTokensList().Count == 1) //для переменной
             {
                 _isArray = false;
                 _identifier = (Token)varibleStatment.getTokensList()[0];//нельзя вывести весь  массив
@@ -171,7 +181,7 @@ namespace SyntaxAnalyser
         public void process(WriteStatment writeStatment)
         {
             VaribleStatment varibleStatment = (VaribleStatment)writeStatment.getTokensList()[0];
-            if (varibleStatment.getTokensList().Count == 0) //для инта
+            if (varibleStatment.getTokensList().Count == 1) //для инта
             {
                 _isArray = false;
                 _identifier = (Token)varibleStatment.getTokensList()[0];
@@ -180,7 +190,7 @@ namespace SyntaxAnalyser
             {
                 _isArray = true;
                 _identifier = (Token)varibleStatment.getTokensList()[0];
-                _elementIndex = (Token)varibleStatment.getTokensList()[1];
+                _elementIndex = (Token)varibleStatment.getTokensList()[2];
             }
             generate();
         }
@@ -200,7 +210,8 @@ namespace SyntaxAnalyser
         public void process(IfStatment ifStatment)
         {
             isElseAppear = false;
-            _leftExpression = getLeftExpression((BoolExpression)ifStatment.getTokensList()[0]);
+            BoolStatment boolStatment = (BoolStatment)ifStatment.getTokensList()[0];
+            _leftExpression = getLeftExpression((BoolExpression)boolStatment.getTokensList()[0]);
             _thenExpression = getElseAndThenStatments((StatmentPart)ifStatment.getTokensList()[1]);
 
             if (ifStatment.getTokensList().Count == 3)
@@ -286,7 +297,8 @@ namespace SyntaxAnalyser
 
         public static List<object> getStatments(StatmentPart statmentPart) //Выдернуть кастер
         {
-            List<object> statments = statmentPart.getTokensList();
+            Statment statment = (Statment)statmentPart.getTokensList()[0];
+            List<object> statments = statment.getTokensList();
             return statments;
         }
 
@@ -329,8 +341,10 @@ namespace SyntaxAnalyser
         List<object> _rightExpression = new List<object>();
         public void process(WhileStatment whileStatment)
         {
-            _leftExpression = IfStatmentProcessor.getLeftExpression((BoolExpression)whileStatment.getTokensList()[0]);
+            BoolStatment boolSatment = (BoolStatment)whileStatment.getTokensList()[0];
+            _leftExpression = IfStatmentProcessor.getLeftExpression((BoolExpression)boolSatment.getTokensList()[0]);
             _rightExpression = IfStatmentProcessor.getElseAndThenStatments((StatmentPart)whileStatment.getTokensList()[1]);
+            generate();
         }
 
         void generate()
