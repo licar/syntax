@@ -9,12 +9,18 @@ namespace SyntaxAnalyser
 {
     class Program
     {
+        static public List<object> identifiers = new List<object>();
+        static public ITree tree;
+        static public string programName = "";
+       
         static void Main(string[] args)
         {
-            TokensList tokensList = new TokensList("file.txt");
+            TokensList tokensList = new TokensList("Output.txt");
             try
             {
                 Prgm prgm = new Prgm(tokensList);
+                TreePass treePass = new TreePass(prgm);
+                
             }
             catch (Exception e)
             {
@@ -63,8 +69,8 @@ namespace SyntaxAnalyser
                 string[] parsedLine = line.Split(' ');
                 token = new Token();
                 token.lineNo = Convert.ToInt32(parsedLine[0]);
-                token.kind = parsedLine[2];
-                token.value = parsedLine[1];
+                token.value = parsedLine[2];
+                token.kind = parsedLine[1];
                 tokensList.Add(token);
             }
         }
@@ -77,6 +83,50 @@ namespace SyntaxAnalyser
         public string value;
     }
 
+    class MathElement
+    {
+        Token token;
+        int priority;
+        public MathElement(Token token, int priority)
+        {
+            this.token = token;
+            this.priority = priority;
+        }
+
+    }
+
+    /*
+    static class Calculator
+    {
+        static private List<MathElement> mathExpression = new List<MathElement>();
+        public static Token calculate()
+        {
+
+            
+            Token token; token.kind = Constants.CONST_INT; token.lineNo = 0; token.value = result.ToString();
+            return token;
+        }
+
+        public static int getPriority(Token token)
+        {
+            if (token.kind == Constants.CONST_INT) return 0;
+            else if (token.kind == Constants.PLUS || token.kind == Constants.MINUS) return 1;
+            else return 2;
+        }
+
+        public static void add(MathElement mathElement)
+        {
+            mathExpression.Add(mathElement);
+        }
+
+        public static void clear()
+        {
+            mathExpression.Clear();
+        }
+    }
+    */
+
+    
 }
 
 

@@ -8,117 +8,118 @@ namespace SyntaxAnalyser
 {
     class Visitor
     {
-        static public void visit(Prgm prgm)
+        static public string visit(Prgm prgm)
         {
-            Console.Write(Constants.PROGRAM_STATMENT);
+            return Constants.PROGRAM_STATMENT;
         }
 
-        static public void visit(Block block)
+        static public string visit(Block block)
         {
-            Console.Write(Constants.BLOCK_STATMENT);
+            return Constants.BLOCK_STATMENT;
         }
-        static public void visit(VaribleDeclarationPart block)
+        static public string visit(VaribleDeclarationPart block)
         {
-            Console.Write(Constants.BLOCK_STATMENT);
-        }
-
-        static public void visit(VaribleDeclaration block)
-        {
-            Console.Write(Constants.VARIBLE_DECLARATION);
+            return Constants.VARIBLE_DECLARATION_RAPT;
         }
 
-        static public void visit(Type type)
+        static public string visit(VaribleDeclaration block)
         {
-            Console.Write(Constants.TYPE_STATMENT);
+            return Constants.VARIBLE_DECLARATION;
         }
 
-        static public void visit(IntegerType integerType)
+        static public string visit(Type type)
         {
-            Console.Write(Constants.INTEGER_TYPE_STATMENT);
+            return Constants.TYPE_STATMENT;
         }
 
-        static public void visit(ArrayType arrayType)
+        static public string visit(IntegerType integerType)
         {
-            Console.Write(Constants.ARRAY_TYPE_STATMENT);
+            return Constants.INTEGER_TYPE_STATMENT;
         }
 
-        static public void visit(StatmentPart statmentPart)
+        static public string visit(ArrayType arrayType)
         {
-            Console.Write(Constants.STATMENT_PART);
+            return Constants.ARRAY_TYPE_STATMENT;
+        }
+
+        static public string visit(StatmentPart statmentPart)
+        {
+            return Constants.STATMENT_PART;
         }
 
 
-        static public void visit(AssignmentStatment assignmentStatment)
+        static public string visit(AssignmentStatment assignmentStatment)
         {
-            Console.Write(Constants.ASSIGNMENT_STATMENT);
+            return Constants.ASSIGNMENT_STATMENT;
         }
 
-        static public void visit(VaribleStatment varibleStatment)
+        static public string visit(VaribleStatment varibleStatment)
         {
-            Console.Write(Constants.VARIBLE_STATMENT);
+            return Constants.VARIBLE_STATMENT;
         }
 
-        static public void visit(ArrayAssignment arrayAssignment)
+        static public string visit(ArrayAssignment arrayAssignment)
         {
-            Console.Write(Constants.ARRAY_ASSIGNMENT);
+            return Constants.ARRAY_ASSIGNMENT;
         }
 
-        static public void visit(ReadStatment readStatment)
+        static public string visit(ReadStatment readStatment)
         {
-            Console.Write(Constants.READ_STATMENT);
+            return Constants.READ_STATMENT;
         }
 
-        static public void visit(WriteStatment writeStatment)
+        static public string visit(WriteStatment writeStatment)
         {
-            Console.Write(Constants.WRITE_STATMENT);
+            return Constants.WRITE_STATMENT;
         }
 
-        static public void visit(Statment writeStatment)
+        static public string visit(Statment writeStatment)
         {
-            Console.Write(Constants.STATMENT);
+            return Constants.STATMENT;
         }
-        static public void visit(IfStatment ifStatment)
+        static public string visit(IfStatment ifStatment)
         {
-            Console.Write(Constants.IF_STATMENT);
+            return Constants.IF_STATMENT;
         }
-        static public void visit(WhileStatment ifStatment)
+        static public string visit(WhileStatment ifStatment)
         {
-            Console.Write(Constants.WHILE_STATMENT);
-        }
-
-        static public void visit(BoolStatment boolStatment)
-        {
-            Console.Write(Constants.BOOL_STATMENT);
+            return Constants.WHILE_STATMENT;
         }
 
-        static public void visit(BoolExpression boolExpression)
+        static public string visit(BoolStatment boolStatment)
         {
-            Console.Write(Constants.BOOL_EXPRESSION);
+            return Constants.BOOL_STATMENT;
         }
 
-        static public void visit(MathStatment mathStatment)
+        static public string visit(BoolExpression boolExpression)
         {
-            Console.Write(Constants.MATH_STATMENT);
+            return Constants.BOOL_EXPRESSION;
         }
 
-        static public void visit(Factor factor)
+        static public string visit(MathStatment mathStatment)
         {
-            Console.Write(Constants.FACTOR);
+            return Constants.MATH_STATMENT;
         }
 
-        static public void visit(MathExpression mathExpression)
+        static public string visit(Factor factor)
         {
-            Console.Write(Constants.MATH_EXPRESSION);
+            return Constants.FACTOR;
         }
 
-        static public void visit(RelationalOperator relationalOperator)
+        static public string visit(MathExpression mathExpression)
         {
-            Console.Write(Constants.RELATIONAL_OPERATOR);
+            return Constants.MATH_EXPRESSION;
         }
 
-        static public void visit(MathOperator mathOperator)
+        static public string visit(RelationalOperator relationalOperator)
         {
-            Console.Write(Constants.MATH_OPERATOR);
+            return Constants.RELATIONAL_OPERATOR;
+        }
+
+        static public string visit(MathOperator mathOperator)
+        {
+            return Constants.MATH_OPERATOR;
         }
     }
+    
 }
