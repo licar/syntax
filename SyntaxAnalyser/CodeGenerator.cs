@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SyntaxAnalyser
 {
-    class DefinerProcessor
+    class DefinerProcessor//объявление пермеременный в var
     {
         Token _identifier = new Token();
         Token _type = new Token();
@@ -38,10 +38,10 @@ namespace SyntaxAnalyser
         }
     }
 
-    class AssignmentProcessor
+    class AssignmentProcessor//Присвоение значения
     {
-        bool _isIntLeft = false;
-        bool _isMathRight = false;
+        bool _isArrayElementLeft = false;
+        bool _isMathRight = false; //
         Token _leftOp = new Token();
         List<Token> _rightOp = new List<Token>();
         public void process(AssignmentStatment assignmentStatment)
@@ -49,13 +49,13 @@ namespace SyntaxAnalyser
             VaribleStatment varibleStatment = (VaribleStatment)assignmentStatment.getTokensList()[0];
             if (varibleStatment.getTokensList().Count == 1) // для переменной
             {
-                _isIntLeft = true;
+                _isArrayElementLeft = false;
                 _leftOp = (Token)varibleStatment.getTokensList()[0];
                 _rightOp = getRightOp(varibleStatment.getTokensList()[1]);
             }
             else //элемент массива
             {
-                _isIntLeft = false;
+                _isArrayElementLeft = true;
                 Token leftOp = (Token)varibleStatment.getTokensList()[0];
                 Token elementIndex = (Token)varibleStatment.getTokensList()[1];
                 List<Token> rightOp = getRightOp(varibleStatment.getTokensList()[1]);
@@ -133,7 +133,7 @@ namespace SyntaxAnalyser
 
     }
 
-    class ReaderProcessor //скинуть
+    class ReaderProcessor //
     {
         Token _identifier = new Token();
         Token _elementIndex = new Token();
@@ -141,7 +141,7 @@ namespace SyntaxAnalyser
         public void process(ReadStatment readStatment)
         {
             VaribleStatment varibleStatment = (VaribleStatment)readStatment.getTokensList()[0];
-            if (varibleStatment.getTokensList().Count == 0) //для инта
+            if (varibleStatment.getTokensList().Count == 0) //для переменной
             {
                 _isArray = false;
                 _identifier = (Token)varibleStatment.getTokensList()[0];//нельзя вывести весь  массив
@@ -238,7 +238,7 @@ namespace SyntaxAnalyser
 
         void generateLeftExpression()
         {
-            
+            //на тебе
         }
 
         void generateRightExpression(List<object> expression)
