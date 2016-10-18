@@ -15,7 +15,7 @@ namespace SyntaxAnalyser
 
         public void process(VaribleDeclaration varibleDeclaration)
         {
-            Token identifier = (Token)varibleDeclaration.getTokensList()[0];
+            Token _identifier = (Token)varibleDeclaration.getTokensList()[0]; //рассказать про косяк сереге
             Type type = (Type)varibleDeclaration.getTokensList()[1];
             try //для массива
             {
@@ -23,15 +23,23 @@ namespace SyntaxAnalyser
                 _isArray = true;
                 _type = (Token)arrayType.getTokensList()[0];
                 _length = (Token)arrayType.getTokensList()[1];
+                SemanticAnalizer.checkIsDefineAgain(_identifier.value);
+                SemanticAnalizer.checkInitEmptyArray(_identifier.value, Int32.Parse(_length.value));
+                SemanticAnalizer.addVarible(_identifier.value, _type.value, Int32.Parse(_length.value));
             }
             catch  // для инта
             {
                 IntegerType integerType = (IntegerType)type.getTokensList()[0];
                 _isArray = false;
                 _type = (Token)integerType.getTokensList()[0];
+                SemanticAnalizer.checkIsDefineAgain(_identifier.value);
+                SemanticAnalizer.addVarible(_identifier.value, _type.value);
             }
+
             generate();
         }
+
+        
 
         void generate()//генерируй здесь код
         {
@@ -44,23 +52,32 @@ namespace SyntaxAnalyser
         bool _isArrayElementLeft = false;
         bool _isMathRight = false; //
         Token _leftOp = new Token();
+        Token _elementIndex = new Token();
         List<Token> _rightOp = new List<Token>();
         public void process(AssignmentStatment assignmentStatment)
         {
             VaribleStatment varibleStatment = (VaribleStatment)assignmentStatment.getTokensList()[0];
+            
             if (varibleStatment.getTokensList().Count == 1) // для переменной
             {
                 _isArrayElementLeft = false;
                 _leftOp = (Token)varibleStatment.getTokensList()[0];
-                _rightOp = getRightOp(varibleStatment.getTokensList()[1]);
+                Program.varibleName = _leftOp.value;
+                SemanticAnalizer.initVarible(_leftOp.value);
+
+                _rightOp = getRightOp(assignmentStatment.getTokensList()[1]);
             }
             else //элемент массива
             {
                 _isArrayElementLeft = true;
-                Token leftOp = (Token)varibleStatment.getTokensList()[0];
-                Token elementIndex = (Token)varibleStatment.getTokensList()[1];
-                List<Token> rightOp = getRightOp(varibleStatment.getTokensList()[1]);
+                _leftOp = (Token)varibleStatment.getTokensList()[0];
+                Program.varibleName = _leftOp.value;
+                _elementIndex = (Token)varibleStatment.getTokensList()[2];
+                List<Token> rightOp = getRightOp(assignmentStatment.getTokensList()[1]);
+                SemanticAnalizer.checkArrayOnOutOfRange(rightOp);
             }
+            //SemanticAnalizer.checkDivByZero(_rightOp);
+            //SemanticAnalizer.checkArrayOnOutOfRange(_rightOp);
             generate();
             
         }
@@ -88,10 +105,23 @@ namespace SyntaxAnalyser
             {
                 tokens.Add(token);
             }
+            SemanticAnalizer.checkVarible(_leftOp.value);
+            SemanticAnalizer.checkInitEmptyArray(_leftOp.value, tokens.Count);
+            SemanticAnalizer.checkIsLengthArrayEqual(_leftOp.value, tokens.Count);
+
+            if (_isArrayElementLeft)
+            {
+                SemanticAnalizer.incompatibleTypes();
+            }
+            else
+            {
+                SemanticAnalizer.checkCompareTypes(_leftOp.value, Constants.INTARRAY);
+            }
+
             return tokens;
         }
 
-        List<Token> getMathExpression(MathStatment mathStatment)
+        public static List<Token> getMathExpression(MathStatment mathStatment)
         {
             List<Token> tokens = new List<Token>();
             MathExpression mathExpression = (MathExpression)mathStatment.getTokensList()[0];
@@ -99,6 +129,11 @@ namespace SyntaxAnalyser
             {
                 tokens.AddRange(getFactor(item));
             }
+            if (tokens.Count > 1)
+            {
+                SortExpression.getSortedExpression(tokens);
+            }
+
             return tokens;
         }
 
@@ -120,8 +155,16 @@ namespace SyntaxAnalyser
             }
             catch
             {
-                RelationalOperator relationalOperator = (RelationalOperator)item;
-                tokens.Add((Token)relationalOperator.getTokensList()[0]);
+                try
+                {
+                    MathOperator mathOperator = (MathOperator)item;
+                    tokens.Add((Token)mathOperator.getTokensList()[0]);
+                }
+                catch
+                {
+                    RelationalOperator relationalOperator = (RelationalOperator)item;
+                    tokens.Add((Token)relationalOperator.getTokensList()[0]);
+                } 
             }
             return tokens;
         }
@@ -133,6 +176,21 @@ namespace SyntaxAnalyser
             {
                 tokens.Add((Token)element);
             }
+            
+            SemanticAnalizer.checkVarible(tokens[0].value);
+
+            if (tokens.Count == 4)
+            {
+                if (tokens[2].kind == Constants.IDENTIFIER)
+                {
+                    SemanticAnalizer.checkVarible(tokens[2].value);
+                }
+                else
+                {
+                    SemanticAnalizer.checkGetElementByIndex(Program.varibleName, Int32.Parse(tokens[2].value));
+                }
+            }
+
             return tokens;
         }
 
@@ -140,7 +198,6 @@ namespace SyntaxAnalyser
         {
 
         }
-
     }
 
     class ReaderProcessor //
@@ -150,17 +207,36 @@ namespace SyntaxAnalyser
         bool _isArray = false;
         public void process(ReadStatment readStatment)
         {
-            VaribleStatment varibleStatment = (VaribleStatment)readStatment.getTokensList()[0];
-            if (varibleStatment.getTokensList().Count == 1) //для переменной
+            try
             {
+                VaribleStatment varibleStatment = (VaribleStatment)readStatment.getTokensList()[0];
                 _isArray = false;
-                _identifier = (Token)varibleStatment.getTokensList()[0];//нельзя вывести весь  массив
+                _identifier = (Token)varibleStatment.getTokensList()[0];
+                SemanticAnalizer.initVarible(_identifier.value);
             }
-            else //для элемента массива
+            catch//для массива
             {
                 _isArray = true;
-                _identifier = (Token)varibleStatment.getTokensList()[0];
-                _elementIndex = (Token)varibleStatment.getTokensList()[1];
+                List<Token> tokens = AssignmentProcessor.getMathExpression((MathStatment)readStatment.getTokensList()[0]);
+                _identifier = tokens[0];
+                if (tokens.Count == 1)
+                {
+                    if (tokens[0].kind == Constants.CONST_INT)
+                    {
+                        SemanticAnalizer.readAndWriteToConts();
+                    }
+                    
+                    _isArray = false;
+                }
+                else if (tokens.Count == 4 && (tokens[1].kind == Constants.BRACKET_L) && (tokens[3].kind == Constants.BRACKET_R))
+                {
+                    _isArray = true;
+                    _elementIndex = tokens[2];
+                }
+                else
+                {
+                    SemanticAnalizer.InvalidIdentifier();
+                }
             }
             generate();
         }
@@ -180,17 +256,43 @@ namespace SyntaxAnalyser
 
         public void process(WriteStatment writeStatment)
         {
-            VaribleStatment varibleStatment = (VaribleStatment)writeStatment.getTokensList()[0];
-            if (varibleStatment.getTokensList().Count == 1) //для инта
+            try
             {
+                VaribleStatment varibleStatment = (VaribleStatment)writeStatment.getTokensList()[0];
                 _isArray = false;
                 _identifier = (Token)varibleStatment.getTokensList()[0];
             }
-            else //для массива
+            catch//для массива
             {
-                _isArray = true;
-                _identifier = (Token)varibleStatment.getTokensList()[0];
-                _elementIndex = (Token)varibleStatment.getTokensList()[2];
+                
+                List<Token> tokens = AssignmentProcessor.getMathExpression((MathStatment)writeStatment.getTokensList()[0]);
+                _identifier = tokens[0];
+                if (tokens.Count == 1)
+                {
+                    if (tokens[0].kind == Constants.CONST_INT)
+                    {
+                        SemanticAnalizer.readAndWriteToConts();
+                    }
+                    else
+                    {
+                        SemanticAnalizer.checkVarible(tokens[0].value);
+                    }
+                    _isArray = false;
+                }
+                else if (tokens.Count == 4 && (tokens[1].kind == Constants.BRACKET_L) && (tokens[3].kind == Constants.BRACKET_R))
+                {
+                    _isArray = true;
+                    if (tokens[2].kind == Constants.IDENTIFIER)
+                    {
+                        SemanticAnalizer.checkVarible(tokens[2].value);
+                    }
+                    _elementIndex = tokens[2];
+                }
+                else
+                {
+                    SemanticAnalizer.InvalidIdentifier();
+                }
+
             }
             generate();
         }
@@ -212,11 +314,21 @@ namespace SyntaxAnalyser
             isElseAppear = false;
             BoolStatment boolStatment = (BoolStatment)ifStatment.getTokensList()[0];
             _leftExpression = getLeftExpression((BoolExpression)boolStatment.getTokensList()[0]);
+            if (_leftExpression[0].kind == Constants.IDENTIFIER)
+            {
+                SemanticAnalizer.checkVarible(_leftExpression[0].value);
+            }
+            if (_leftExpression[2].kind == Constants.IDENTIFIER)
+            {
+                SemanticAnalizer.checkVarible(_leftExpression[2].value);
+            }
             _thenExpression = getElseAndThenStatments((StatmentPart)ifStatment.getTokensList()[1]);
 
             if (ifStatment.getTokensList().Count == 3)
             {
+                isElseAppear = true;
                 _elseExpression = getElseAndThenStatments((StatmentPart)ifStatment.getTokensList()[2]);
+
             }
             generate();
         }
@@ -256,7 +368,7 @@ namespace SyntaxAnalyser
         {
             foreach (ITree node in expression)
             {
-                if (node.getMethodName() == Constants.ARRAY_ASSIGNMENT)
+                if (node.getMethodName() == Constants.ASSIGNMENT_STATMENT)
                 {
                     AssignmentProcessor assignmenterProcessor = new AssignmentProcessor();
                     assignmenterProcessor.process((AssignmentStatment)node);
@@ -306,7 +418,7 @@ namespace SyntaxAnalyser
         {
             foreach (ITree node in _statments)
             {
-                if (node.getMethodName() == Constants.ARRAY_ASSIGNMENT)
+                if (node.getMethodName() == Constants.ASSIGNMENT_STATMENT)
                 {
                     AssignmentProcessor assignmenterProcessor = new AssignmentProcessor();
                     assignmenterProcessor.process((AssignmentStatment)node);
@@ -343,6 +455,14 @@ namespace SyntaxAnalyser
         {
             BoolStatment boolSatment = (BoolStatment)whileStatment.getTokensList()[0];
             _leftExpression = IfStatmentProcessor.getLeftExpression((BoolExpression)boolSatment.getTokensList()[0]);
+            if (_leftExpression[0].kind == Constants.IDENTIFIER)
+            {
+                SemanticAnalizer.checkVarible(_leftExpression[0].value);
+            }
+            if (_leftExpression[2].kind == Constants.IDENTIFIER)
+            {
+                SemanticAnalizer.checkVarible(_leftExpression[2].value);
+            }
             _rightExpression = IfStatmentProcessor.getElseAndThenStatments((StatmentPart)whileStatment.getTokensList()[1]);
             generate();
         }
@@ -362,7 +482,7 @@ namespace SyntaxAnalyser
         {
             foreach (ITree node in _rightExpression)
             {
-                if (node.getMethodName() == Constants.ARRAY_ASSIGNMENT)
+                if (node.getMethodName() == Constants.ASSIGNMENT_STATMENT)
                 {
                     AssignmentProcessor assignmenterProcessor = new AssignmentProcessor();
                     assignmenterProcessor.process((AssignmentStatment)node);

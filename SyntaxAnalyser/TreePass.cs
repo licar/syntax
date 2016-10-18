@@ -23,19 +23,20 @@ namespace SyntaxAnalyser
 
         void processVaribleDeclaration(VaribleDeclarationPart varibleDeclarationPart)
         {
-            
-            VaribleDeclaration varibleDeclaration = (VaribleDeclaration)varibleDeclarationPart.getTokensList()[0];
-            DefinerProcessor definerProcessor = new DefinerProcessor();
-            definerProcessor.process(varibleDeclaration);
+            foreach (VaribleDeclaration varibleDeclaration in varibleDeclarationPart.getTokensList())
+            {
+                DefinerProcessor definerProcessor = new DefinerProcessor();
+                definerProcessor.process(varibleDeclaration);
+            }
         }
 
         void processStamentPart(StatmentPart statmentPart)
         {
             StatmentPartProcessor statmentPartProcessor = new StatmentPartProcessor();
-            
-            foreach (ITree node in statmentPart.getTokensList())
+            Statment statment = (Statment)statmentPart.getTokensList()[0];
+            foreach (ITree node in statment.getTokensList())
             {
-                if (node.getMethodName() == Constants.ARRAY_ASSIGNMENT)
+                if (node.getMethodName() == Constants.ASSIGNMENT_STATMENT)
                 {
                     AssignmentProcessor assignmenterProcessor = new AssignmentProcessor();
                     assignmenterProcessor.process((AssignmentStatment)node);

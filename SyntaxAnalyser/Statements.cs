@@ -363,9 +363,16 @@ namespace SyntaxAnalyser
             if (token.kind != Constants.READ) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.READ + " but took  " + token.kind.ToString());
 
             token = tokensList.GetToken();
-            if (token.kind != Constants.STREAM_R) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.STREAM_R + " but took  " + token.kind.ToString());
+            if (token.kind != Constants.TO) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.TO + " but took  " + token.kind.ToString());
 
-            children.Add(new VaribleStatment(tokensList));
+            token = tokensList.SeeToken();
+
+            if (token.kind == Constants.IDENTIFIER) children.Add(new VaribleStatment(tokensList));
+            else if (token.kind == Constants.MATH)
+            {
+                children.Add(new MathStatment(tokensList));
+            }
+            else throw new System.Exception("Line " + token.lineNo.ToString() + " : expected " + Constants.IDENTIFIER + " or " + Constants.MATH + " but took  " + token.kind.ToString());
 
         }
 
@@ -390,13 +397,16 @@ namespace SyntaxAnalyser
             if (token.kind != Constants.WRITE) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.WRITE + " but took  " + token.kind.ToString());
 
             token = tokensList.GetToken();
-            if (token.kind != Constants.STREAM_L) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.STREAM_L + " but took  " + token.kind.ToString());
+            if (token.kind != Constants.FROM) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.FROM + " but took  " + token.kind.ToString());
 
             token = tokensList.SeeToken();
 
             if (token.kind == Constants.IDENTIFIER) children.Add(new VaribleStatment(tokensList));
-            else if (token.kind == Constants.MATH) children.Add(new MathStatment(tokensList));
-            else throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.IDENTIFIER + " or " + Constants.MATH  + " but took  " + token.kind.ToString());
+            else if (token.kind == Constants.MATH)
+            {
+                children.Add(new MathStatment(tokensList));
+            }
+            else throw new System.Exception("Line " + token.lineNo.ToString() + " : expected " + Constants.IDENTIFIER + " or " + Constants.MATH + " but took  " + token.kind.ToString());
         }
 
         public string getMethodName()
@@ -549,6 +559,7 @@ namespace SyntaxAnalyser
 
             token = tokensList.GetToken();
             if (token.kind != Constants.PARANTHESIS_R) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.PARANTHESIS_R + " but took  " + token.kind.ToString());
+            
         }
 
         public string getMethodName()
@@ -565,7 +576,7 @@ namespace SyntaxAnalyser
     class MathExpression : ITree
     {
         public List<object> children = new List<object>();
-
+        List<object> childrenWithoutSort = new List<object>();
         public MathExpression(TokensList tokensList)
         {
             children.Add(new Factor(tokensList));
@@ -573,10 +584,15 @@ namespace SyntaxAnalyser
             while (true)
             {
                 Boolean isOperator = false;
-                children.Add(new MathOperator(tokensList, ref isOperator));
+                MathOperator mathOperator = new MathOperator(tokensList, ref isOperator);
+                if (mathOperator.getTokensList().Count > 0)
+                {
+                    children.Add(mathOperator);
+                }
                 if (isOperator) children.Add(new Factor(tokensList));
                 else break;
             }
+            
         }
 
         public string getMethodName()
@@ -698,8 +714,8 @@ namespace SyntaxAnalyser
                 if (token.kind != Constants.BRACKET_L) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.BRACKET_L + " but took  " + token.kind.ToString());
                 else children.Add(token);
                 token = tokensList.GetToken();
-                if (token.kind == Constants.CONST_INT) children.Add(token);
-                else throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.CONST_INT + " but took  " + token.kind.ToString());
+                if (token.kind == Constants.CONST_INT || token.kind == Constants.IDENTIFIER) children.Add(token);
+                else throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.CONST_INT + " or " + Constants.IDENTIFIER + " but took " + token.kind.ToString());
 
                 token = tokensList.GetToken();
                 if (token.kind != Constants.BRACKET_R) throw new System.Exception("Line "  + token.lineNo.ToString() + " : expected " + Constants.BRACKET_R + " but took  " + token.kind.ToString());

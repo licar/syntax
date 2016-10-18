@@ -43,10 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGenerator.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SemanticAnalizer.cs" />
+    <Compile Include="SortExpression.cs" />
     <Compile Include="Statements.cs" />
+    <Compile Include="TreePass.cs" />
+    <Compile Include="TreeWriter.cs" />
     <Compile Include="Visitor.cs" />
   </ItemGroup>
   <ItemGroup>
