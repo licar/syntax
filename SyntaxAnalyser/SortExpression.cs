@@ -43,80 +43,8 @@ namespace SyntaxAnalyser
             List<Priority> listPriority = new List<Priority>();
             listPriority = addPriority(expression);
             List<Priority> result = pack(listPriority);
-            //passTree((SortedExpression)result._element);
-            //(count + count1 - 10 * 5 + 100 / 2);
-            //return 
         }
 
-        /*static Priority sort(List<Priority> expression)
-        {
-            List<Priority> operands = new List<Priority>();
-            List<Priority> functions = new List<Priority>();
-            bool isPack = false;
-
-            while (expression.Count != 0)
-            {
-                if (expression[0]._priority == 0)
-                {
-                    operands.Add(expression[0]);
-                }
-                else
-                {
-                    functions.Add(expression[0]);
-                }
-                expression.RemoveAt(0);
-
-                if (functions.Count >= 2 && operands.Count > functions.Count)
-                {
-                    if (functions[functions.Count - 1]._priority >= functions[functions.Count - 2]._priority)
-                    {
-                        SortedExpression sortedExpression = new SortedExpression(operands[operands.Count - 2]._element, operands[operands.Count - 1]._element, functions[functions.Count - 1]._element);
-                        operands.RemoveAt(operands.Count - 2);
-                        operands.RemoveAt(operands.Count - 1);
-                        functions.RemoveAt(functions.Count - 1);
-                        Priority priority = new Priority(sortedExpression, 0);
-                        operands.Add(priority);
-                    }
-                }
-            }
-
-            while (operands.Count > 1)
-            {
-
-                if (operands.Count > 2)
-                {
-                    if (functions[functions.Count - 1]._priority >= functions[functions.Count - 2]._priority)
-                    {
-                        SortedExpression sortedExpression = new SortedExpression(operands[operands.Count - 2]._element, operands[operands.Count - 1]._element, functions[functions.Count - 1]._element);
-                        operands.RemoveAt(operands.Count - 2);
-                        operands.RemoveAt(operands.Count - 1);
-                        functions.RemoveAt(functions.Count - 1);
-                        Priority priority = new Priority(sortedExpression, 0);
-                        operands.Add(priority);
-                    }
-                    else
-                    {
-                        SortedExpression sortedExpression = new SortedExpression(operands[operands.Count - 3]._element, operands[operands.Count - 2]._element, functions[functions.Count - 2]._element);
-                        Priority priority = new Priority(sortedExpression, 0);
-                        operands[operands.Count - 3] = priority;
-                        operands.RemoveAt(operands.Count - 2);
-                        functions.RemoveAt(functions.Count - 2);
-                    }
-                }
-                else
-                {
-                    SortedExpression sortedExpression = new SortedExpression(operands[operands.Count - 2]._element, operands[operands.Count - 1]._element, functions[functions.Count - 1]._element);
-                    operands.RemoveAt(operands.Count - 2);
-                    operands.RemoveAt(operands.Count - 1);
-                    functions.RemoveAt(functions.Count - 1);
-                    Priority priority = new Priority(sortedExpression, 0);
-                    operands.Add(priority);
-                }
-            }
-
-            return operands[0];
-            
-    }*/
 
         static List<Priority> pack(List<Priority> expression)
         {
@@ -177,38 +105,91 @@ namespace SyntaxAnalyser
 
         static void passTree(List<Priority> expression)
         {
-            foreach (Priority priority in expression)
+            for (int i = 0; i != expression.Count; ++i)
             {
-                try //это для операндов и операторов
+                try 
                 {
-                    Token token = (Token)priority._element; 
+                    Token token = (Token)expression[i]._element; 
+                    //записываешь в массив значение по индексу i
                 }
                 catch
                 {
-                    SortExpression sortExpression = (SortExpression)priority._element;
+                    SortedExpression sortExpression = (SortedExpression)expression[i]._element; // * или / 
+                    runSortExpression(sortExpression, true);
+                    //записываешь значение переменной l в массив по индексу i
                 }
             }
+
+            //проходишь массив и складываешь и вычитаешь
         }
 
-        static void runSortExpression(SortedExpression sortExpression)
-        {
-            Token operand = (Token)sortExpression._operand;
-            try
+        static void runSortExpression(SortedExpression sortExpression, bool isLeft)
+        {           
+            try 
             {
-                Token left = (Token)sortExpression._left;
+                //не содержит вложенностей
+                Token left = (Token)sortExpression._left; //если не имеет вложенностей левый операнд
+                Token right = (Token)sortExpression._right;
+                Token operand = (Token)sortExpression._operand;
+                //сохраняешь в переменную результат вычисления 
+                if (isLeft)
+                {
+                    //l = left * right
+                }
+                else
+                {
+                    //r = left + right
+                }
             }
             catch
             {
-                runSortExpression((SortedExpression)sortExpression._left);
-            }
+                try //вложенность содержить правый элемент
+                {
+                    Token left = (Token)sortExpression._left;
+                    Token operand = (Token)sortExpression._operand;
+                    runSortExpression((SortedExpression)sortExpression._right, false);
+                    if (isLeft)
+                    {
+                        //l = left + r
+                    }
+                    else
+                    {
+                        //r = left + r
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        //левый содержит вложенность
+                        Token right = (Token)sortExpression._right;
+                        Token operand = (Token)sortExpression._operand;
+                        runSortExpression((SortedExpression)sortExpression._left, true);
+                        if (isLeft)
+                        {
+                            //l = l + right
+                        }
+                        else
+                        {
+                            //r = l + right
+                        }
+                    }
+                    catch
+                    { //оба содержат вложенность
+                        runSortExpression((SortedExpression)sortExpression._left, true);
+                        runSortExpression((SortedExpression)sortExpression._right, false);
+                        Token operand = (Token)sortExpression._operand;
+                        if (isLeft)
+                        {
+                            //l = l + r
+                        }
+                        else
+                        {
+                            //r = l + r
+                        }
+                    }
+                }
 
-            try
-            {
-                Token left = (Token)sortExpression._right;
-            }
-            catch
-            {
-                runSortExpression((SortedExpression)sortExpression._right);
             }
         }
 
